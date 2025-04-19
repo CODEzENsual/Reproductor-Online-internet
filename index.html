@@ -1,186 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ViVi - Reproductor de Vídeo</title>
-  <meta name="description" content="Reproductor de vídeo HTML5 con controles personalizados, HLS, lista de reproducción y seguridad reforzada.">
-
-  <!-- CSP -->
-  <meta http-equiv="Content-Security-Policy"
-        content="
-          default-src 'self';
-          script-src 'self';
-          style-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com 'unsafe-inline';
-          font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data: https:;
-          connect-src 'self';
-          object-src 'none';
-          base-uri 'self';
-          frame-ancestors 'none';
-          upgrade-insecure-requests;
-          block-all-mixed-content;
-        ">
-
-  <!-- Preconnect & Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet">
-  </noscript>
-
-  <!-- Bootstrap Icons -->
-  <link rel="preload"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        as="style"
-        onload="this.onload=null;this.rel='stylesheet'"
-        integrity="sha384-+NVf5QHXf7jlk8S7aWbjiv5CCmT0heSaaCJ+heR8ZFNWmBtDLPH10y1XU3lBqaTy"
-        crossorigin="anonymous">
-  <noscript>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-          rel="stylesheet"
-          integrity="sha384-+NVf5QHXf7jlk8S7aWbjiv5CCmT0heSaaCJ+heR8ZFNWmBtDLPH10y1XU3lBqaTy"
-          crossorigin="anonymous">
-  </noscript>
-
-  <!-- Critical CSS -->
   <link rel="stylesheet" href="style.css">
-  <style>
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; background: #121212;
-      overflow-x: hidden; font-family: 'Poppins', sans-serif;
-    }
-    .contenedor {
-      width: 100%; max-width: 1200px; padding: 20px;
-    }
-  </style>
-
-  <!-- Main CSS -->
-  <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="style.css"></noscript>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-
 <body>
-  <main class="contenedor" role="main">
-    <!-- Reproductor -->
-    <section class="reproductor-video" id="reproductor">
-      <video id="video" playsinline preload="metadata" poster="img/poster.jpg" aria-label="Reproductor de vídeo">
+  <div class="contenedor">
+    <!-- Reproductor de vídeo -->
+    <div class="reproductor-video" id="reproductor">
+      <video id="video" preload="metadata" poster="img/poster.jpg">
         <source src="" type="video/mp4">
-        <track id="track-subtitulos" kind="subtitles" src="" srclang="es" label="Español" default>
-        Tu navegador no soporta vídeo.
+        <track kind="subtitles" src="" srclang="es" label="Español">
+        Tu navegador no soporta la reproducción de vídeos.
       </video>
 
       <div class="menu-reproductor" id="menu-reproductor" role="group" aria-label="Controles del reproductor">
         <div class="info-video">
           <h1 id="titulo-video">Título del vídeo</h1>
-          <p id="autor-video">Autor / Tamaño</p>
+          <p id="autor-video">Autor del vídeo</p>
         </div>
+
         <div class="barra-progreso" aria-label="Progreso del vídeo">
           <div class="tiempo-actual" id="tiempo-actual">0:00</div>
-          <input id="progreso" class="slider-progreso" type="range" min="0" max="100" step="0.1" value="0" aria-hidden="true">
+          <input 
+            type="range"
+            id="progreso"
+            class="slider-progreso"
+            value="0"
+            min="0"
+            max="100"
+            step="0.1"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            role="slider"
+          />
           <div class="tiempo-total" id="tiempo-total">0:00</div>
         </div>
-        <div class="controles" role="toolbar" aria-label="Controles de reproducción">
-          <button id="btn-retroceder" class="boton-control" aria-label="Retroceder 10s">
+
+        <div class="controles">
+          <button class="boton-control" id="btn-retroceder" aria-label="Retroceder 10 segundos">
             <i class="bi bi-rewind-fill"></i>
           </button>
-          <button id="btn-reproducir" class="boton-control principal" aria-label="Reproducir/Pausar">
-            <i id="icono-reproducir" class="bi bi-play-fill"></i>
+
+          <button class="boton-control principal" id="btn-reproducir" aria-label="Reproducir o Pausar">
+            <i class="bi bi-play-fill" id="icono-reproducir"></i>
           </button>
-          <button id="btn-avanzar" class="boton-control" aria-label="Avanzar 10s">
+
+          <button class="boton-control" id="btn-avanzar" aria-label="Avanzar 10 segundos">
             <i class="bi bi-fast-forward-fill"></i>
           </button>
-          <div class="control-volumen" role="group" aria-label="Volumen">
-            <button id="btn-volumen" class="boton-control" aria-label="Silenciar/Restaurar">
-              <i id="icono-volumen" class="bi bi-volume-up-fill"></i>
+
+          <div class="control-volumen" aria-label="Control de volumen">
+            <button class="boton-control" id="btn-volumen" aria-label="Silenciar o Restaurar volumen">
+              <i class="bi bi-volume-up-fill" id="icono-volumen"></i>
             </button>
-            <input id="volumen" type="range" min="0" max="1" step="0.05" value="0.7"
-                   role="slider" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0.7" aria-label="Volumen">
+            <input 
+              type="range"
+              id="volumen"
+              min="0"
+              max="1"
+              step="0.05"
+              value="0.7"
+              aria-valuemin="0"
+              aria-valuemax="1"
+              aria-valuenow="0.7"
+              role="slider"
+            />
           </div>
-          <button id="btn-config" class="boton-control" aria-label="Configuración">
+
+          <button class="boton-control" id="btn-config" aria-label="Configuración">
             <i class="bi bi-gear-fill"></i>
           </button>
-          <button id="btn-subtitulos" class="boton-control" aria-label="Toggle subtítulos">
-            <i id="icono-subtitulos" class="bi bi-badge-cc"></i>
+
+          <button class="boton-control" id="btn-subtitulos" aria-label="Activar subtítulos">
+            <i class="bi bi-badge-cc" id="icono-subtitulos"></i>
           </button>
-          <button id="btn-pantalla-completa" class="boton-control" aria-label="Pantalla completa">
-            <i class="bi bi-fullscreen"></i>
+
+          <button class="boton-control" id="btn-pantalla-completa" aria-label="Activar pantalla completa">
+            <i class="bi bi-fullscreen" id="icono-pantalla"></i>
           </button>
         </div>
       </div>
 
-      <!-- Configuración -->
-      <div class="menu-configuracion" id="menu-configuracion" role="dialog" aria-modal="true" aria-hidden="true">
+      <!-- Menú de configuración -->
+      <div class="menu-configuracion" id="menu-configuracion">
         <div class="config-header">
           <h3>Configuración</h3>
-          <button id="cerrar-config" class="btn-cerrar" aria-label="Cerrar">
+          <button class="btn-cerrar" id="cerrar-config" aria-label="Cerrar configuración">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <div class="config-opciones">
           <div class="opcion">
-            <label for="resolucion">Resolución</label>
-            <select id="resolucion" aria-label="Resolución"></select>
+            <label for="resolucion">Resolución:</label>
+            <select id="resolucion" aria-label="Seleccionar resolución">
+              <option value="auto">Auto</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+            </select>
           </div>
           <div class="opcion">
-            <label for="velocidad">Velocidad</label>
-            <select id="velocidad" aria-label="Velocidad">
-              <option value="0.5">0.5×</option>
-              <option value="0.75">0.75×</option>
-              <option value="1" selected>1×</option>
-              <option value="1.25">1.25×</option>
-              <option value="1.5">1.5×</option>
-              <option value="2">2×</option>
+            <label for="velocidad">Velocidad:</label>
+            <select id="velocidad" aria-label="Seleccionar velocidad">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>Normal</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </div>
+          <div class="opcion">
+            <label for="idioma-subtitulos">Subtítulos:</label>
+            <select id="idioma-subtitulos" aria-label="Seleccionar idioma de subtítulos">
+              <option value="">Desactivados</option>
+              <option value="es">Español</option>
+              <option value="en">Inglés</option>
             </select>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Gestión de vídeos -->
-    <section class="gestion-videos" aria-label="Gestión de vídeos">
+    <!-- Controles de gestión de vídeos -->
+    <div class="gestion-videos">
       <div class="gestion-botones">
-        <label for="subir-video" class="boton-gestion">
-          <i class="bi bi-upload"></i><span>Subir Vídeo</span>
-        </label>
-        <input id="subir-video" type="file" accept="video/mp4,video/webm,video/ogg,.m3u8" multiple hidden aria-label="Subir vídeos">
+        <div class="grupo-boton">
+          <label for="subir-video" class="boton-gestion">
+            <i class="bi bi-upload"></i>
+            <span>Subir Vídeo</span>
+          </label>
+          <input type="file" id="subir-video" accept="video/mp4,video/webm,video/ogg" multiple aria-label="Subir vídeos" hidden>
+          <span class="limite-info">Máximo 10GB</span>
+        </div>
 
-        <button id="limpiar-videos" class="boton-gestion" aria-label="Limpiar lista">
-          <i class="bi bi-trash"></i><span>Limpiar Lista</span>
-        </button>
+        <div class="grupo-boton">
+          <button class="boton-gestion" id="limpiar-videos">
+            <i class="bi bi-trash"></i>
+            <span>Limpiar Lista</span>
+          </button>
+        </div>
 
-        <label for="input-subtitulos" class="boton-gestion">
-          <i class="bi bi-card-text"></i><span>Añadir Subtítulos</span>
-        </label>
-        <input id="input-subtitulos" type="file" accept=".vtt,.srt" hidden aria-label="Subir subtítulos">
+        <div class="grupo-boton">
+          <button class="boton-gestion" id="subir-subtitulos">
+            <i class="bi bi-card-text"></i>
+            <span>Añadir Subtítulos</span>
+          </button>
+          <input type="file" id="input-subtitulos" accept=".vtt,.srt" hidden aria-label="Subir subtítulos">
+        </div>
       </div>
+
+      <!-- Lista de vídeos -->
       <div class="lista-videos-container">
         <h3>Lista de Vídeos <span id="contador-videos">(0)</span></h3>
         <ul id="lista-videos" class="lista-videos">
+          <!-- Los vídeos se añadirán aquí dinámicamente -->
           <li class="video-vacio">No hay vídeos en la lista</li>
         </ul>
       </div>
-    </section>
-  </main>
-
-  <!-- Alertas y diálogos -->
-  <div id="alerta-tamaño" class="alerta" role="alert" aria-hidden="true">
-    <div class="alerta-contenido">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <p>El archivo excede el límite de 10 GB.</p>
-      <button id="cerrar-alerta" class="btn-cancelar">Entendido</button>
     </div>
   </div>
-  <div id="dialogo-confirmacion" class="dialogo-confirmacion" role="dialog" aria-modal="true" aria-hidden="true">
+
+  <!-- Mensaje para tamaño excesivo -->
+  <div class="alerta" id="alerta-tamaño">
+    <div class="alerta-contenido">
+      <i class="bi bi-exclamation-triangle"></i>
+      <p>El archivo excede el límite de 10GB.</p>
+      <button id="cerrar-alerta">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Diálogo de confirmación -->
+  <div class="dialogo-confirmacion" id="dialogo-confirmacion">
     <div class="dialogo-contenido">
       <h3>¿Estás seguro?</h3>
-      <p id="texto-confirmacion">¿Deseas eliminar este vídeo?</p>
+      <p id="texto-confirmacion">¿Deseas eliminar todos los vídeos de la lista?</p>
       <div class="dialogo-botones">
         <button id="confirmar-si" class="btn-confirmar">Sí</button>
         <button id="confirmar-no" class="btn-cancelar">No</button>
@@ -188,12 +188,6 @@
     </div>
   </div>
 
-  <noscript>
-    <p style="color:#fff; text-align:center;">
-      JavaScript es necesario para el reproductor.
-    </p>
-  </noscript>
-  <script defer src="script.js"></script>
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
