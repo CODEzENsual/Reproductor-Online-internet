@@ -1,332 +1,287 @@
-// utils
-const formatTiempo = s => {
-  const m = Math.floor(s/60), sec = Math.floor(s%60);
-  return `${m}:${sec<10?'0'+sec:sec}`;
-};
-const formatTamaño = b => {
-  if (b<1024) return `${b} B`;
-  if (b<1048576) return `${(b/1024).toFixed(2)} KB`;
-  if (b<1073741824) return `${(b/1048576).toFixed(2)} MB`;
-  return `${(b/1073741824).toFixed(2)} GB`;
-};
-const sanitize = str => {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-};
-
+// script.js
 document.addEventListener('DOMContentLoaded', () => {
-  // referencias
-  const ids = {
-    video: 'video',
-    reproductor: 'reproductor',
-    menu: 'menu-reproductor',
-    titulo: 'titulo-video',
-    autor: 'autor-video',
-    btnPlay: 'btn-reproducir',
-    iconPlay: 'icono-reproducir',
-    btnVol: 'btn-volumen',
-    iconVol: 'icono-volumen',
-    volSlider: 'volumen',
-    progreso: 'progreso',
-    tiempoActual: 'tiempo-actual',
-    tiempoTotal: 'tiempo-total',
-    btnRetro: 'btn-retroceder',
-    btnAvanzar: 'btn-avanzar',
-    btnFull: 'btn-pantalla-completa',
-    btnConfig: 'btn-config',
-    menuConfig: 'menu-configuracion',
-    cerrarConfig: 'cerrar-config',
-    selectRes: 'resolucion',
-    selectVel: 'velocidad',
-    inputVideo: 'subir-video',
-    btnLimpiar: 'limpiar-videos',
-    listaVideos: 'lista-videos',
-    contador: 'contador-videos',
-    alerta: 'alerta-tamaño',
-    cerrarAlerta: 'cerrar-alerta',
-    dialogo: 'dialogo-confirmacion',
-    textoConfirm: 'texto-confirmacion',
-    btnSi: 'confirmar-si',
-    btnNo: 'confirmar-no',
-    inputSub: 'input-subtitulos',
-    btnSub: 'btn-subtitulos',
-    iconSub: 'icono-subtitulos',
-    trackSub: 'track-subtitulos'
+  // ELEMENTOS
+  const video            = document.getElementById('video');
+  const reproductor      = document.getElementById('reproductor');
+  const menu             = document.getElementById('menu-reproductor');
+  const tituloVideo      = document.getElementById('titulo-video');
+  const autorVideo       = document.getElementById('autor-video');
+  const btnPlay          = document.getElementById('btn-reproducir');
+  const iconPlay         = document.getElementById('icono-reproducir');
+  const btnVol           = document.getElementById('btn-volumen');
+  const iconVol          = document.getElementById('icono-volumen');
+  const volSlider        = document.getElementById('volumen');
+  const progreso         = document.getElementById('progreso');
+  const tiempoActual     = document.getElementById('tiempo-actual');
+  const tiempoTotal      = document.getElementById('tiempo-total');
+  const btnRetro         = document.getElementById('btn-retroceder');
+  const btnAvanzar       = document.getElementById('btn-avanzar');
+  const btnFull          = document.getElementById('btn-pantalla-completa');
+  const btnConfig        = document.getElementById('btn-config');
+  const menuConfig       = document.getElementById('menu-configuracion');
+  const cerrarConfig     = document.getElementById('cerrar-config');
+  const selectResolucion = document.getElementById('resolucion');
+  const selectVelocidad  = document.getElementById('velocidad');
+  const inputVideo       = document.getElementById('subir-video');
+  const btnLimpiar       = document.getElementById('limpiar-videos');
+  const listaVideos      = document.getElementById('lista-videos');
+  const contadorVideos   = document.getElementById('contador-videos');
+  const alertaTamaño     = document.getElementById('alerta-tamaño');
+  const cerrarAlerta     = document.getElementById('cerrar-alerta');
+  const dialogoConfirm   = document.getElementById('dialogo-confirmacion');
+  const textoConfirm     = document.getElementById('texto-confirmacion');
+  const btnConfirmSi     = document.getElementById('confirmar-si');
+  const btnConfirmNo     = document.getElementById('confirmar-no');
+
+  // VARIABLES
+  let listaDeVideos = [];
+  let videoActual   = null;
+  let temporizador, ultimaActividad = Date.now();
+  const esperaOculto    = 3000;
+  const TAMAÑO_MAXIMO   = 10 * 1024 * 1024 * 1024; // 10 GB
+  let accionConfirmacion= null;
+  let hls = null;
+
+  // FUNCIONES AUXILIARES
+  const formatTiempo = s => {
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return `${m}:${sec<10?'0'+sec:sec}`;
   };
-  const $ = id => document.getElementById(id);
-  const el = {};
-  for (let k in ids) el[k] = $(ids[k]);
-
-  // estado
-  let lista = [], actual = null, hls = null;
-  let ultimaAct = Date.now(), confirmCb = () => {};
-  const MAX_TAM = 10 * 1024**3;
-
-  // inactividad
-  const checkInactividad = () => {
-    if (!el.video.paused && Date.now() - ultimaAct > 3000) {
-      el.menu.classList.remove('visible');
-      el.reproductor.classList.add('ocultar-cursor');
-      el.menuConfig.classList.remove('visible');
-    }
-    requestAnimationFrame(checkInactividad);
+  const formatTamaño = b => {
+    if (b<1024) return `${b} B`;
+    if (b<1048576) return `${(b/1024).toFixed(2)} KB`;
+    if (b<1073741824) return `${(b/1048576).toFixed(2)} MB`;
+    return `${(b/1073741824).toFixed(2)} GB`;
   };
   const showMenu = () => {
-    ultimaAct = Date.now();
-    el.menu.classList.add('visible');
-    el.reproductor.classList.remove('ocultar-cursor');
+    ultimaActividad = Date.now();
+    menu.classList.add('visible');
+    reproductor.classList.remove('ocultar-cursor');
+  };
+  const checkActivity = () => {
+    if (!video.paused && Date.now() - ultimaActividad > esperaOculto) {
+      menu.classList.remove('visible');
+      reproductor.classList.add('ocultar-cursor');
+      menuConfig.classList.remove('visible');
+    }
+  };
+  const loopActivity = () => {
+    clearInterval(temporizador);
+    temporizador = setInterval(checkActivity, 1000);
+  };
+  const mostrarAlertaFn = () => alertaTamaño.classList.add('visible');
+  const mostrarConfirm = (txt, cb) => {
+    textoConfirm.textContent = txt;
+    dialogoConfirm.classList.add('visible');
+    accionConfirmacion = cb;
+  };
+  const actualizarContador = () => {
+    contadorVideos.textContent = `(${listaDeVideos.length})`;
+    if (listaDeVideos.length===0) {
+      listaVideos.innerHTML = '<li class="video-vacio">No hay vídeos en la lista</li>';
+    } else {
+      const v = listaVideos.querySelector('.video-vacio');
+      if (v) v.remove();
+    }
   };
 
-  // HLS o src
+  // CARGA Y CAMBIO DE RESOLUCIÓN (HLS)
   const cargarHLS = file => {
     const url = URL.createObjectURL(file);
     if (hls) { hls.destroy(); hls = null; }
-    if (file.name.endsWith('.m3u8') && window.Hls?.isSupported()) {
+    if (file.name.endsWith('.m3u8') && Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(url);
-      hls.attachMedia(el.video);
+      hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        el.selectRes.innerHTML =
-          `<option value="auto">Auto</option>` +
-          hls.levels.map((lvl,i)=>
-            `<option value="${i}">${lvl.height}p</option>`
-          ).join('');
+        selectResolucion.innerHTML = '<option value="auto">Auto</option>';
+        hls.levels.forEach((lvl,i) => {
+          selectResolucion.innerHTML += `<option value="${i}">${lvl.height}p</option>`;
+        });
       });
     } else {
-      el.video.src = url;
+      video.src = url;
     }
   };
 
-  // lista
-  const crearItem = item => {
-    const li = document.createElement('li');
-    li.id = item.id; li.className = 'item-video';
-    const info = document.createElement('div');
-    info.className = 'info-item-video';
-    const nm = document.createElement('div');
-    nm.className = 'nombre-video';
-    nm.textContent = sanitize(item.nombre);
-    const sz = document.createElement('div');
-    sz.className = 'tamaño-video';
-    sz.textContent = formatTamaño(item.tamaño);
-    info.append(nm, sz);
-
-    const actions = document.createElement('div');
-    actions.className = 'acciones-video';
-    ['reproducir','eliminar'].forEach(type=>{
-      const btn = document.createElement('button');
-      btn.className = `btn-accion-video btn-${type}`;
-      btn.dataset.id = item.id;
-      btn.setAttribute('aria-label', type);
-      const ic = document.createElement('i');
-      ic.className = `bi bi-${type==='reproducir'?'play-fill':'trash'}`;
-      btn.append(ic);
-      actions.append(btn);
-    });
-    li.append(info, actions);
-    return li;
-  };
-  const actualizarLista = () => {
-    el.contador.textContent = `(${lista.length})`;
-    if (!lista.length) {
-      el.listaVideos.innerHTML = '<li class="video-vacio">No hay vídeos en la lista</li>';
-    }
-  };
-  const setCurrent = item => {
-    el.listaVideos.querySelectorAll('.activo').forEach(x=>x.classList.remove('activo'));
+  // GESTIÓN DE LISTA DE VÍDEOS
+  const cargarVideo = item => {
+    document.querySelectorAll('.item-video.activo').forEach(el=>el.classList.remove('activo'));
     cargarHLS(item.archivo);
-    el.titulo.textContent = sanitize(item.nombre);
-    el.autor.textContent = formatTamaño(item.tamaño);
-    actual = item;
+    tituloVideo.textContent = item.nombre;
+    autorVideo.textContent  = formatTamaño(item.tamaño);
+    videoActual = item;
     document.getElementById(item.id).classList.add('activo');
   };
-  const addVideo = file => {
+  const añadirVideo = file => {
     const id = 'v'+Date.now();
-    const it = {id, archivo:file, nombre:file.name, tamaño:file.size};
-    lista.push(it);
-    el.listaVideos.append(crearItem(it));
-    if (lista.length===1) setCurrent(it);
-    actualizarLista();
+    const item = { id, archivo: file, nombre: file.name, tamaño: file.size };
+    listaDeVideos.push(item);
+    const li = document.createElement('li');
+    li.id = id; li.className='item-video';
+    li.innerHTML = `
+      <div class="info-item-video">
+        <div class="nombre-video">${file.name}</div>
+        <div class="tamaño-video">${formatTamaño(file.size)}</div>
+      </div>
+      <div class="acciones-video">
+        <button class="btn-accion-video btn-reproducir" data-id="${id}" aria-label="Reproducir">
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <button class="btn-accion-video btn-eliminar" data-id="${id}" aria-label="Eliminar">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>`;
+    listaVideos.appendChild(li);
+    actualizarContador();
+    if (listaDeVideos.length===1) cargarVideo(item);
   };
-  const removeVideo = id => {
-    lista = lista.filter(v=>v.id!==id);
+  const eliminarVideo = id => {
+    listaDeVideos = listaDeVideos.filter(i=>i.id!==id);
     document.getElementById(id)?.remove();
-    if (actual?.id===id) {
-      if (lista.length) setCurrent(lista[0]);
+    actualizarContador();
+    if (videoActual?.id===id) {
+      if (listaDeVideos.length) cargarVideo(listaDeVideos[0]);
       else {
-        el.video.removeAttribute('src');
-        el.titulo.textContent='Título del vídeo';
-        el.autor.textContent='Autor / Tamaño';
-        actual=null;
+        video.src=''; tituloVideo.textContent='Título del vídeo'; autorVideo.textContent='Autor / Tamaño'; videoActual=null;
       }
     }
-    actualizarLista();
   };
   const limpiarLista = () => {
-    lista=[]; actual=null;
-    el.listaVideos.innerHTML = '<li class="video-vacio">No hay vídeos en la lista</li>';
-    el.video.removeAttribute('src');
-    el.titulo.textContent='Título del vídeo';
-    el.autor.textContent='Autor / Tamaño';
-    actualizarLista();
+    listaDeVideos=[]; listaVideos.innerHTML='<li class="video-vacio">No hay vídeos en la lista</li>';
+    video.src=''; tituloVideo.textContent='Título del vídeo'; autorVideo.textContent='Autor / Tamaño'; videoActual=null;
+    actualizarContador();
   };
 
-  // subtítulos dyn
-  el.inputSub.addEventListener('change', () => {
-    const f = el.inputSub.files[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    const tr = el.trackSub;
-    tr.src = url;
-    tr.mode = 'showing';
-    el.iconSub.className = 'bi bi-badge-cc-fill';
-  });
-
-  // toggle subtítulos
-  el.btnSub.addEventListener('click', () => {
-    const tr = el.trackSub;
-    if (tr.mode === 'showing') {
-      tr.mode = 'hidden';
-      el.iconSub.className = 'bi bi-badge-cc';
-    } else {
-      tr.mode = 'showing';
-      el.iconSub.className = 'bi bi-badge-cc-fill';
-    }
-    showMenu();
-  });
-
-  // eventos básicos
-  el.btnPlay.addEventListener('click', () => {
-    if (el.video.paused) {
-      el.video.play().then(()=> {
-        el.iconPlay.className='bi bi-pause-fill';
-        el.reproductor.classList.add('reproduciendo');
+  // EVENTOS PRINCIPALES
+  btnPlay.addEventListener('click', () => {
+    if (video.paused) {
+      video.play().then(()=> {
+        iconPlay.className='bi bi-pause-fill';
+        reproductor.classList.add('reproduciendo');
+        loopActivity();
       }).catch(()=>{});
     } else {
-      el.video.pause();
-      el.iconPlay.className='bi bi-play-fill';
-      el.reproductor.classList.remove('reproduciendo');
+      video.pause();
+      iconPlay.className='bi bi-play-fill';
+      reproductor.classList.remove('reproduciendo');
     }
     showMenu();
   });
-  el.video.addEventListener('click', ()=>el.btnPlay.click());
-  el.volSlider.addEventListener('input', e=> {
-    el.video.volume = e.target.value;
-    el.iconVol.className = el.video.volume===0
+  video.addEventListener('click', ()=> btnPlay.click());
+
+  volSlider.addEventListener('input', () => {
+    video.volume = volSlider.value;
+    iconVol.className = video.volume === 0
       ? 'bi bi-volume-mute-fill'
-      : (el.video.volume<0.5 ? 'bi bi-volume-down-fill' : 'bi bi-volume-up-fill');
+      : video.volume < 0.5
+        ? 'bi bi-volume-down-fill'
+        : 'bi bi-volume-up-fill';
     showMenu();
-  }, {passive:true});
-  el.btnVol.addEventListener('click', () => {
-    if (el.video.volume>0) { el.video.volume=0; el.volSlider.value=0; }
-    else { el.video.volume=el.volSlider.value=0.7; }
-    el.iconVol.className = el.video.volume===0
+  });
+  btnVol.addEventListener('click', () => {
+    if (video.volume > 0) {
+      video.volume = 0; volSlider.value = 0;
+    } else {
+      video.volume = volSlider.value = 0.7;
+    }
+    iconVol.className = video.volume === 0
       ? 'bi bi-volume-mute-fill'
       : 'bi bi-volume-up-fill';
     showMenu();
   });
 
-  // progreso rAF
-  const updateProgress = () => {
-    if (!isNaN(el.video.duration)) {
-      const val = (el.video.currentTime/el.video.duration)*100;
-      el.progreso.value = val;
-      el.tiempoActual.textContent = formatTiempo(el.video.currentTime);
-      el.progreso.setAttribute('aria-valuenow', val.toFixed(1));
+  video.addEventListener('timeupdate', () => {
+    if (!isNaN(video.duration)) {
+      progreso.value = (video.currentTime / video.duration) * 100;
+      tiempoActual.textContent = formatTiempo(video.currentTime);
     }
-    requestAnimationFrame(updateProgress);
-  };
-  el.video.addEventListener('loadedmetadata', () => {
-    el.tiempoTotal.textContent = formatTiempo(el.video.duration);
-    el.tiempoActual.textContent = formatTiempo(0);
-    el.progreso.value = 0;
-
-    // ajustar ratio + fullscreen
-    if (el.video.videoHeight>el.video.videoWidth) {
-      el.reproductor.classList.add('vertical');
-      el.btnFull.classList.add('oculto');
-      el.btnFull.disabled = true;
-    } else {
-      el.reproductor.classList.remove('vertical');
-      el.btnFull.classList.remove('oculto');
-      el.btnFull.disabled = false;
-    }
-    requestAnimationFrame(updateProgress);
   });
-  el.progreso.addEventListener('input', e => {
-    el.video.currentTime = (e.target.value/100)*el.video.duration;
+  video.addEventListener('loadedmetadata', () => {
+    tiempoTotal.textContent = formatTiempo(video.duration);
+    tiempoActual.textContent = formatTiempo(0);
+    progreso.value = 0;
+  });
+  progreso.addEventListener('input', () => {
+    video.currentTime = (progreso.value / 100) * video.duration;
     showMenu();
-  }, {passive:true});
+  });
 
-  // demás controles
-  el.btnRetro.addEventListener('click', () => { el.video.currentTime = Math.max(0, el.video.currentTime - 10); showMenu(); });
-  el.btnAvanzar.addEventListener('click', () => { el.video.currentTime = Math.min(el.video.duration, el.video.currentTime + 10); showMenu(); });
-  el.btnFull.addEventListener('click', () => {
-    if (!document.fullscreenElement) el.reproductor.requestFullscreen();
+  btnRetro.addEventListener('click', () => { video.currentTime = Math.max(0, video.currentTime - 10); showMenu(); });
+  btnAvanzar.addEventListener('click', () => { video.currentTime = Math.min(video.duration, video.currentTime + 10); showMenu(); });
+
+  btnFull.addEventListener('click', () => {
+    if (video.videoHeight > video.videoWidth) return;
+    if (!document.fullscreenElement) reproductor.requestFullscreen();
     else document.exitFullscreen();
   });
-  el.btnConfig.addEventListener('click', () => { el.menuConfig.classList.toggle('visible'); showMenu(); });
-  el.cerrarConfig.addEventListener('click', () => { el.menuConfig.classList.remove('visible'); showMenu(); });
 
-  el.selectVel.addEventListener('change', ()=>{ el.video.playbackRate = parseFloat(el.selectVel.value); });
-  el.selectRes.addEventListener('change', ()=> {
-    if (hls) hls.currentLevel = el.selectRes.value==='auto' ? -1 : parseInt(el.selectRes.value,10);
-  });
+  btnConfig.addEventListener('click', () => { menuConfig.classList.toggle('visible'); showMenu(); });
+  cerrarConfig.addEventListener('click', () => { menuConfig.classList.remove('visible'); showMenu(); });
 
-  // upload vídeos
-  el.inputVideo.addEventListener('change', () => {
-    Array.from(el.inputVideo.files).forEach(f => {
-      if (f.size>MAX_TAM) el.alerta.classList.add('visible');
-      else addVideo(f);
-    });
-  });
-
-  // limpiar lista con confirm
-  el.btnLimpiar.addEventListener('click', () => {
-    el.textoConfirm.textContent = '¿Limpiar toda la lista de vídeos?';
-    el.dialogo.classList.add('visible');
-    confirmCb = limpiarLista;
-  });
-
-  // lista delegado
-  el.listaVideos.addEventListener('click', e => {
-    const pr = e.target.closest('.btn-reproducir');
-    const del = e.target.closest('.btn-eliminar');
-    if (pr) setCurrent(lista.find(v=>v.id===pr.dataset.id));
-    if (del) {
-      el.textoConfirm.textContent = '¿Eliminar este vídeo?';
-      el.dialogo.classList.add('visible');
-      confirmCb = ()=>removeVideo(del.dataset.id);
+  selectVelocidad.addEventListener('change', () => { video.playbackRate = parseFloat(selectVelocidad.value); });
+  selectResolucion.addEventListener('change', () => {
+    if (hls) {
+      hls.currentLevel = selectResolucion.value === 'auto' ? -1 : parseInt(selectResolucion.value);
     }
   });
 
-  // confirm dialog
-  el.btnSi.addEventListener('click', () => { confirmCb(); el.dialogo.classList.remove('visible'); });
-  el.btnNo.addEventListener('click', () => el.dialogo.classList.remove('visible'));
+  inputVideo.addEventListener('change', () => {
+    const file = inputVideo.files[0];
+    if (!file) return;
+    if (file.size > TAMAÑO_MAXIMO) return mostrarAlertaFn();
+    añadirVideo(file);
+  });
 
-  // cerrar alerta
-  el.cerrarAlerta.addEventListener('click', () => el.alerta.classList.remove('visible'));
+  listaVideos.addEventListener('click', e => {
+    if (e.target.closest('.btn-reproducir')) {
+      const id = e.target.closest('.btn-reproducir').dataset.id;
+      cargarVideo(listaDeVideos.find(i => i.id === id));
+    }
+    if (e.target.closest('.btn-eliminar')) {
+      const id = e.target.closest('.btn-eliminar').dataset.id;
+      mostrarConfirm('¿Eliminar este vídeo?', () => eliminarVideo(id));
+    }
+  });
 
-  // teclado y actividad
+  btnConfirmarSi.addEventListener('click', () => { accionConfirmacion(); dialogoConfirm.classList.remove('visible'); });
+  btnConfirmarNo.addEventListener('click', () => dialogoConfirm.classList.remove('visible'));
+
+  cerrarAlerta.addEventListener('click', () => alertaTamaño.classList.remove('visible'));
+
+  reproductor.addEventListener('mousemove', showMenu);
+  reproductor.addEventListener('touchstart', showMenu, { passive: true });
+
+  video.addEventListener('ended', () => {
+    iconPlay.className = 'bi bi-play-fill';
+    reproductor.classList.add('visible');
+    reproductor.classList.remove('reproduciendo');
+    clearInterval(temporizador);
+    if (videoActual) {
+      const idx = listaDeVideos.findIndex(i => i.id === videoActual.id);
+      if (idx >= 0 && idx < listaDeVideos.length - 1) {
+        setTimeout(() => {
+          cargarVideo(listaDeVideos[idx + 1]);
+          btnPlay.click();
+        }, 1500);
+      }
+    }
+  });
+
   document.addEventListener('keydown', e => {
-    if (['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyF'].includes(e.code)) {
-      e.preventDefault();
-      const m = {
-        Space: () => el.btnPlay.click(),
-        ArrowLeft: () => el.btnRetro.click(),
-        ArrowRight: () => el.btnAvanzar.click(),
-        ArrowUp: () => { el.volSlider.value = Math.min(1,+el.volSlider.value+0.1); el.volSlider.dispatchEvent(new Event('input')); },
-        ArrowDown: () => { el.volSlider.value = Math.max(0,+el.volSlider.value-0.1); el.volSlider.dispatchEvent(new Event('input')); },
-        KeyF: () => el.btnFull.click()
+    if (document.activeElement === document.body || reproductor.contains(document.activeElement)) {
+      const acciones = {
+        Space:   () => btnPlay.click(),
+        ArrowLeft:  () => btnRetro.click(),
+        ArrowRight: () => btnAvanzar.click(),
+        ArrowUp:    () => { volSlider.value = Math.min(1, parseFloat(volSlider.value) + 0.1); volSlider.dispatchEvent(new Event('input')); },
+        ArrowDown:  () => { volSlider.value = Math.max(0, parseFloat(volSlider.value) - 0.1); volSlider.dispatchEvent(new Event('input')); },
+        KeyF:       () => btnFull.click(),
       };
-      m[e.code]?.();
+      if (acciones[e.code]) { acciones[e.code](); e.preventDefault(); }
     }
-  }, {passive:false});
+  });
 
-  el.reproductor.addEventListener('mousemove', showMenu, {passive:true});
-  el.reproductor.addEventListener('touchstart', showMenu, {passive:true});
-
-  requestAnimationFrame(checkInactividad);
+  loopActivity();
   showMenu();
 });
