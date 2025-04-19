@@ -1,0 +1,83 @@
+/* Info y progreso */
+.info-video h1 { font-size: 1.5rem; font-weight: 600; text-shadow: var(--texto-sombra);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.info-video p { font-size: 0.9rem; opacity: 0.8; }
+.barra-progreso {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 15px;
+}
+.slider-progreso {
+  flex: 1; height: 6px; appearance: none; background: var(--progreso-bg);
+  border-radius: 3px; cursor: pointer; transition: height var(--tiempo-transicion);
+}
+.slider-progreso:hover { height: 8px; }
+.slider-progreso::-webkit-slider-thumb {
+  appearance: none; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--color-secundario); cursor: pointer;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3); transition: transform var(--tiempo-transicion);
+}
+.slider-progreso:hover::-webkit-slider-thumb { transform: scale(1.2); }
+.tiempo-actual, .tiempo-total { font-size: 0.8rem; min-width: 40px; }
+
+/* Controles */
+.controles {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.boton-control {
+  background: none; border: none; color: var(--color-primario);
+  font-size: 1.5rem; cursor: pointer; border-radius: 50%;
+  width: 40px; height: 40px; display: flex;
+  align-items: center; justify-content: center;
+  transition: transform var(--tiempo-transicion), background var(--tiempo-transicion);
+}
+.boton-control:hover { transform: scale(1.1); background: var(--hover-bg); }
+.boton-control:focus-visible { outline: 2px solid var(--color-secundario); outline-offset: 2px; }
+.boton-control.principal {
+  font-size: 2rem; width: 50px; height: 50px;
+  background: var(--color-secundario); color: #fff;
+}
+
+/* Volumen */
+.control-volumen { display: flex; align-items: center; gap: 10px; }
+#volumen {
+  width: 80px; height: 5px; appearance: none;
+  background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer;
+}
+#volumen::-webkit-slider-thumb {
+  appearance: none; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--color-primario); cursor: pointer; transition: transform var(--tiempo-transicion);
+}
+#volumen:hover::-webkit-slider-thumb { transform: scale(1.2); }
+
+/* Configuración */
+.menu-configuracion {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.95);
+  width: 300px; background: var(--fondo-menu);
+  backdrop-filter: blur(15px); color: var(--color-primario);
+  padding: 20px; border-radius: var(--borde-radio);
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--tiempo-transicion) , transform var(--tiempo-transicion),
+              visibility var(--tiempo-transicion);
+  z-index: 3; box-shadow: var(--sombra);
+}
+.menu-configuracion.visible {
+  opacity: 1; visibility: visible; transform: translate(-50%,-50%) scale(1);
+}
+.config-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 15px; padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.config-opciones .opcion { margin-bottom: 15px; }
+.config-opciones label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+.config-opciones select {
+  width: 100%; padding: 8px 12px; border: none;
+  border-radius: var(--borde-radio-sm); background: rgba(255,255,255,0.1);
+  color: var(--color-primario); font-size: 0.9rem; cursor: pointer;
+}
+/* Hacer legible el dropdown de resolución */
+#resolucion, #resolucion option {
+  color: #121212; background: #e0e00;
+}
+.config-opciones select:focus { outline: 2px solid var(--color-secundario); }
