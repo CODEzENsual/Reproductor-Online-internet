@@ -16,10 +16,10 @@
 
 ---
 
-## 📦 **Instalación**
+## 📦 **Usa el WEB**
 
 Para comenzar a utilizar el Test Web Player, sigue estos sencillos pasos:
 
-1. **Clonar el repositorio:**
+1. **Ve a mi página de #.github.io:**
    ```bash
-   git clone ///
+   https://codezensual.github.io/web
