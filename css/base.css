@@ -48,7 +48,7 @@ body {
 }
 .reproductor-video::before {
   content: "";
-  position: absolute;
+/*position: absolute; */
   inset: 0;
   background: rgba(0,0,0,0.5);
   -webkit-backdrop-filter: blur(60px) brightness(0.6);
