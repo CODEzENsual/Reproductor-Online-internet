@@ -1,0 +1,114 @@
+/* Gestión de vídeos */
+.gestion-videos {
+  margin-top: 20px; background: var(--fondo-lista);
+  border-radius: var(--borde-radio); padding: 15px;
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px); color: var(--color-primario);
+}
+.gestion-botones {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;
+}
+.boton-gestion {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border: none; border-radius: var(--borde-radio-sm);
+  background: var(--fondo-botones); color: var(--color-primario);
+  cursor: pointer; transition: background var(--tiempo-transicion);
+}
+.boton-gestion:hover { background: var(--color-secundario); }
+.limite-info {
+  font-size: 0.8rem; opacity: 0.7;
+}
+.lista-videos-container {
+  margin-top: 10px;
+}
+.lista-videos { 
+  list-style: none; 
+  max-height: 200px; 
+  overflow-y: auto; 
+  padding: 0; 
+}
+.video-vacio { 
+  padding: 15px; 
+  text-align: center; 
+  opacity: 0.7; 
+}
+.item-video {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: var(--borde-radio-sm);
+  margin-bottom: 5px;
+  background: var(--fondo-botones);
+  transition: background var(--tiempo-transicion);
+}
+.item-video.activo {
+  background: rgba(46, 134, 222, 0.3);
+}
+.item-video:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.info-item-video {
+  flex: 1;
+  overflow: hidden;
+}
+.nombre-video {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tamaño-video {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.acciones-video {
+  display: flex;
+  gap: 5px;
+}
+.btn-accion-video {
+  background: none;
+  border: none;
+  color: var(--color-primario);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--tiempo-transicion);
+}
+.btn-accion-video:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Alertas y diálogos */
+.alerta, .dialogo-confirmacion {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; transition: opacity var(--tiempo-transicion),
+                                       visibility var(--tiempo-transicion);
+  z-index: 4;
+}
+.alerta.visible, .dialogo-confirmacion.visible { opacity: 1; visibility: visible; }
+.alerta-contenido, .dialogo-contenido {
+  background: var(--color-fondo); border-radius: var(--borde-radio);
+  padding: 20px; max-width: 400px; width: 100%; text-align: center;
+  color: var(--color-primario);
+}
+.dialogo-botones { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+.btn-confirmar { background: var(--color-secundario); color: #fff; padding: 8px 20px; border: none; border-radius: var(--borde-radio-sm); cursor: pointer; }
+.btn-cancelar, #cerrar-alerta { background: rgba(255,255,255,0.1); color: var(--color-primario); padding: 8px 20px; border: none; border-radius: var(--borde-radio-sm); cursor: pointer; }
+.btn-confirmar:hover { background: var(--color-terciario); }
+.btn-cancelar:hover, #cerrar-alerta:hover { background: rgba(255,255,255,0.2); }
+
+/* Responsive simplificado */
+@media (max-width: 768px) {
+  .info-video h1 { font-size: 1.2rem; }
+  .control-volumen { display: none; }
+  .boton-control { width: 35px; height: 35px; font-size: 1.2rem; }
+  .boton-control.principal { width: 45px; height: 45px; font-size: 1.8rem; }
+  .gestion-botones { flex-direction: column; }
+  .boton-gestion { width: 100%; justify-content: center; }
+}
