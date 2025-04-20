@@ -20,6 +20,6 @@
 
 Para comenzar a utilizar el Test Web Player, sigue estos sencillos pasos:
 
-1. **Ve a mi página de #.github.io:**
+1. **Visita la página:**
    ```bash
    https://codezensual.github.io/web
