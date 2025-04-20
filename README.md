@@ -22,4 +22,4 @@ Para comenzar a utilizar el Test Web Player, sigue estos sencillos pasos:
 
 1. **Visita la página:**
    ```bash
-   https://codezensual.github.io/web
+   https://codezensual.github.io/Reproductor-Online-internet/
