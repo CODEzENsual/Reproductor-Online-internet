@@ -134,6 +134,8 @@ class Player {
       : video.volume < 0.5
         ? 'bi bi-volume-down-fill'
         : 'bi bi-volume-up-fill';
+    const { btnVol } = this.ui.elementos;
+    if(btnVol) btnVol.setAttribute('aria-pressed', video.volume === 0 ? 'true' : 'false');
     
     this.ui.showMenu();
   }
@@ -155,6 +157,8 @@ class Player {
     iconVol.className = video.volume === 0
       ? 'bi bi-volume-mute-fill'
       : 'bi bi-volume-up-fill';
+    const { btnVol } = this.ui.elementos;
+    if(btnVol) btnVol.setAttribute('aria-pressed', video.volume === 0 ? 'true' : 'false');
     
     this.ui.showMenu();
   }

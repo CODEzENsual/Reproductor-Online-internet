@@ -15,11 +15,15 @@ class UI {
     this.accionConfirmacion = null;
     this.onSubtitulosCargados = null; // Added callback property
     
-    // Obtener elementos DOM (versión segura)
     this.elementos = this.obtenerElementos();
+    const { btnPlay, btnSubtitulos, btnFull } = this.elementos;
+    if(btnPlay) btnPlay.setAttribute('aria-pressed','false');
+    if(btnSubtitulos) btnSubtitulos.setAttribute('aria-pressed','false');
+    if(btnFull) btnFull.setAttribute('aria-pressed','false');
     
     // Inicializar eventos de UI
     this.inicializarEventosUI();
+    this.attachRipples();
   }
 
   /**
@@ -230,14 +234,16 @@ class UI {
    * @param {boolean} reproduciendo - Si está reproduciendo o pausado
    */
   actualizarEstadoReproduccion(reproduciendo) {
-    const { iconPlay, reproductor } = this.elementos;
+    const { iconPlay, reproductor, btnPlay } = this.elementos;
     
     if (reproduciendo) {
       iconPlay.className = 'bi bi-pause-fill';
+      btnPlay.setAttribute('aria-pressed', 'true');
       reproductor.classList.add('reproduciendo');
       this.loopActivity();
     } else {
       iconPlay.className = 'bi bi-play-fill';
+      btnPlay.setAttribute('aria-pressed', 'false');
       reproductor.classList.remove('reproduciendo');
     }
   }
@@ -251,10 +257,12 @@ class UI {
     if (activados) {
       iconSubtitulos.className = 'bi bi-badge-cc-fill'; // Icon for active subtitles
       btnSubtitulos.setAttribute('aria-label', 'Desactivar subtítulos');
+      btnSubtitulos.setAttribute('aria-pressed', 'true');
       btnSubtitulos.classList.add('activo'); // Optional: add visual cue
     } else {
       iconSubtitulos.className = 'bi bi-badge-cc'; // Icon for inactive subtitles
       btnSubtitulos.setAttribute('aria-label', 'Activar subtítulos');
+      btnSubtitulos.setAttribute('aria-pressed', 'false');
       btnSubtitulos.classList.remove('activo'); // Optional: remove visual cue
     }
   }
@@ -269,10 +277,27 @@ class UI {
     if (isFullscreen) {
       icon.className = 'bi bi-fullscreen-exit';
       btnFull.setAttribute('aria-label', 'Salir de pantalla completa');
+      btnFull.setAttribute('aria-pressed', 'true');
     } else {
       icon.className = 'bi bi-fullscreen';
       btnFull.setAttribute('aria-label', 'Activar pantalla completa');
+      btnFull.setAttribute('aria-pressed', 'false');
     }
+  }
+
+  attachRipples() {
+    const sel = ['.boton-control', '.boton-gestion', '.btn-accion-video', '.btn-confirmar', '.btn-cancelar', '#cerrar-alerta'];
+    sel.forEach(s => document.querySelectorAll(s).forEach(el => {
+      if (el.dataset.rippleAttached) return; el.dataset.rippleAttached = '1';
+      el.style.position = el.style.position || 'relative'; el.style.overflow = 'hidden';
+      el.addEventListener('pointerdown', e => {
+        const rect = el.getBoundingClientRect(); const ripple = document.createElement('span');
+        ripple.className = 'ripple'; const size = Math.max(rect.width, rect.height) * 1.6;
+        ripple.style.width = ripple.style.height = size + 'px'; ripple.style.left = (e.clientX - rect.left - size/2) + 'px'; ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+        el.appendChild(ripple); setTimeout(() => ripple.remove(), 700);
+      }, {passive:true});
+      el.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { const rect = el.getBoundingClientRect(); const ripple = document.createElement('span'); ripple.className = 'ripple'; const size = Math.max(rect.width, rect.height)*1.6; ripple.style.width = ripple.style.height = size + 'px'; ripple.style.left = (rect.width/2 - size/2) + 'px'; ripple.style.top = (rect.height/2 - size/2) + 'px'; el.appendChild(ripple); setTimeout(()=>ripple.remove(),700); } });
+    }));
   }
 }
 

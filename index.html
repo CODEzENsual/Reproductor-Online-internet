@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#0063f7">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://cdn.jsdelivr.net; script-src 'self'; img-src 'self' blob:; media-src 'self' blob:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';">
   <title>ViVi - Reproductor de Vídeo</title>
   <!-- Precargar estilos críticos para mejorar LCP -->
   <link rel="preload" href="css/base.css" as="style">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/controls.css">
   <link rel="stylesheet" href="css/playlist.css">
@@ -52,7 +55,7 @@
             <i class="bi bi-rewind-fill"></i>
           </button>
 
-          <button class="boton-control principal" id="btn-reproducir" aria-label="Reproducir o Pausar">
+          <button class="boton-control principal" id="btn-reproducir" aria-label="Reproducir o Pausar" aria-pressed="false">
             <i class="bi bi-play-fill" id="icono-reproducir"></i>
           </button>
 
@@ -61,7 +64,7 @@
           </button>
 
           <div class="control-volumen" aria-label="Control de volumen">
-            <button class="boton-control" id="btn-volumen" aria-label="Silenciar o Restaurar volumen">
+            <button class="boton-control" id="btn-volumen" aria-label="Silenciar o Restaurar volumen" aria-pressed="false">
               <i class="bi bi-volume-up-fill" id="icono-volumen"></i>
             </button>
             <input 
@@ -83,12 +86,12 @@
             <i class="bi bi-gear-fill"></i>
           </button>
 
-          <button class="boton-control" id="btn-subtitulos" aria-label="Activar subtítulos">
+          <button class="boton-control" id="btn-subtitulos" aria-label="Activar subtítulos" aria-pressed="false">
             <i class="bi bi-badge-cc" id="icono-subtitulos"></i>
           </button>
           <input type="file" id="input-subtitulos" accept=".vtt,.srt" hidden aria-label="Subir subtítulos">
 
-          <button class="boton-control" id="btn-pantalla-completa" aria-label="Activar pantalla completa">
+          <button class="boton-control" id="btn-pantalla-completa" aria-label="Activar pantalla completa" aria-pressed="false">
             <i class="bi bi-fullscreen" id="icono-pantalla"></i>
           </button>
         </div>
